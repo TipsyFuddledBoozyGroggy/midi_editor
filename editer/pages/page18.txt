@@ -1,0 +1,160 @@
+[GlobalSetup]
+page_name = [PC18]
+ledbright = [80]
+screenbright = [80]
+long_press_timing = [1]
+WIRELESS_2.4G = [on]
+WIRELESS_ID   = [8]
+WIRELESS_dB   = [6]
+BATTERY_CHARGE= [off]
+group_number = [3]
+display_number_ABC = [abc3]
+display_bank_offset = [1]
+pc_open_num = [0]
+PC_Bank_Select = [1]
+PC_group_0 = 
+PC_group_1 = 
+PC_group_2 = 
+PC_group_3 = 
+PC_group_4 = 
+PC_group_5 = 
+PC_group_6 = 
+PC_group_7 = 
+PC_group_8 = 
+PC_group_9 = 
+CC_value_gropnumber = 
+tapcountMIN = [20]
+tapcountMAX = [200]
+midithrough = [on]
+externalmidicontrol = [on]
+externalmidicontrolch = [16]
+encoderCH = [1]
+encoderCCnum = [20]
+encoderkeyCCtoggle = [10]
+exp1_CH = [1]
+exp1_CC = [0]
+exp1_min = [0]
+exp1_max = [127]
+exp2_CH = [1]
+exp2_CC = [1]
+exp2_min = [0]
+exp2_max = [127]
+
+[key1]
+keytimes = [3]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+ledcolor1 = [0x000000][0x000000][0x00FFFF]
+short_dw1_name = []
+short_dw1 = [1][PC][0][-]
+
+ledcolor2 = [0x00FFFF][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][PC][6][-]
+
+ledcolor3 = [0x000000][0x00FFFF][0x000000]
+short_dw3_name = []
+short_dw3 = [1][PC][12][-]
+
+[key2]
+keytimes = [3]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x000000][0x000000][0x00FFFF]
+short_dw1_name = []
+short_dw1 = [1][PC][1][-]
+
+ledcolor2 = [0x00FFFF][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][PC][7][-]
+
+ledcolor3 = [0x000000][0x00FFFF][0x000000]
+short_dw3_name = []
+short_dw3 = [1][PC][13][-]
+
+[key3]
+keytimes = [3]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x000000][0x000000][0x00FFFF]
+short_dw1_name = []
+short_dw1 = [1][PC][2][-]
+long1_name = []
+long1 = [preset][value_inc]
+
+ledcolor2 = [0x00FFFF][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][PC][8][-]
+long2_name = []
+long2 = [preset][value_inc]
+
+ledcolor3 = [0x000000][0x00FFFF][0x000000]
+short_dw3_name = []
+short_dw3 = [1][PC][14][-]
+long3_name = []
+long3 = [preset][value_inc]
+
+[keyA]
+keytimes = [3]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x000000][0x00FFFF][0x000000]
+short_dw1_name = []
+short_dw1 = [1][PC][3][-]
+
+ledcolor2 = [0x00FFFF][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][PC][9][-]
+
+ledcolor3 = [0x000000][0x000000][0x00FFFF]
+short_dw3_name = []
+short_dw3 = [1][PC][15][-]
+
+[keyB]
+keytimes = [3]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x000000][0x00FFFF][0x000000]
+short_dw1_name = []
+short_dw1 = [1][PC][4][-]
+
+ledcolor2 = [0x00FFFF][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][PC][10][-]
+
+ledcolor3 = [0x000000][0x000000][0x00FFFF]
+short_dw3_name = []
+short_dw3 = [1][PC][16][-]
+
+[keyC]
+keytimes = [3]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x000000][0x00FFFF][0x000000]
+short_dw1_name = []
+short_dw1 = [1][PC][5][-]
+long1_name = []
+long1 = [preset][value_dec]
+
+ledcolor2 = [0x00FFFF][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][PC][11][-]
+long2_name = []
+long2 = [preset][value_dec]
+
+ledcolor3 = [0x000000][0x000000][0x00FFFF]
+short_dw3_name = []
+short_dw3 = [1][PC][17][-]
+long3_name = []
+long3 = [preset][value_dec]

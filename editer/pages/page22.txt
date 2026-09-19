@@ -1,0 +1,103 @@
+[GlobalSetup]
+page_name = [HID]
+ledbright = [80]
+screenbright = [80]
+long_press_timing = [1]
+WIRELESS_2.4G = [on]
+WIRELESS_ID   = [8]
+WIRELESS_dB   = [6]
+BATTERY_CHARGE= [off]
+group_number = [4]
+display_number_ABC = [abc4]
+display_bank_offset = [0]
+pc_open_num = [0]
+PC_Bank_Select = [1]
+PC_group_0 = 
+PC_group_1 = 
+PC_group_2 = 
+PC_group_3 = 
+PC_group_4 = 
+PC_group_5 = 
+PC_group_6 = 
+PC_group_7 = 
+PC_group_8 = 
+PC_group_9 = 
+CC_value_gropnumber = 
+tapcountMIN = [20]
+tapcountMAX = [200]
+midithrough = [on]
+externalmidicontrol = [on]
+externalmidicontrolch = [16]
+encoderCH = [1]
+encoderCCnum = [20]
+encoderkeyCCtoggle = [30]
+exp1_CH = [1]
+exp1_CC = [11]
+exp1_min = [0]
+exp1_max = [127]
+exp2_CH = [1]
+exp2_CC = [12]
+exp2_min = [0]
+exp2_max = [127]
+
+[key1]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x0000FF][0x0000FF][0x0000FF]
+
+ledcolor1 = [0x0000FF][0x0000FF][0x0000FF]
+short_dw1_name = [Name]
+short_dw1 = [HID][send][P][a][i][n][t][END] [HID][send][A][u][d][i][o][END]
+
+[key2]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xDA70D6][0xDA70D6][0xDA70D6]
+
+ledcolor1 = [0xDA70D6][0xDA70D6][0xDA70D6]
+short_dw1_name = [prev_track]
+short_dw1 = [HID][send][prev_track][END]
+
+[key3]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x40E0D0][0x40E0D0][0x40E0D0]
+
+
+ledcolor1 = [0x40E0D0][0x40E0D0][0x40E0D0]
+short_dw1_name = [Vol_up]
+short_dw1 = [HID][send][vol_up][END]
+
+long1 = [preset][value_inc]
+
+[keyA]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xFF0000][0xFF0000][0xFF0000]
+
+
+ledcolor1 = [0xFF0000][0xFF0000][0xFF0000]
+short_dw1_name = [Play]
+short_dw1 = [HID][send][play_pause][END]
+
+[keyB]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xDA70D6][0xDA70D6][0xDA70D6]
+
+
+ledcolor1 = [0xDA70D6][0xDA70D6][0xDA70D6]
+short_dw1_name = [next_track]
+short_dw1 = [HID][send][next_track][END]
+
+[keyC]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x40E0D0][0x40E0D0][0x40E0D0]
+
+
+ledcolor1 = [0x40E0D0][0x40E0D0][0x40E0D0]
+short_dw1_name = [Vol_down]
+short_dw1 = [HID][send][vol_down][END]
+
+long1 = [preset][value_dec]
