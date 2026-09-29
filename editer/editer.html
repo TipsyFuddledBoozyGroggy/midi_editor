@@ -66,14 +66,29 @@
         .device-nav a:hover { color: var(--pa-accent) !important; }
         .device-nav a.active { border-bottom-color: var(--pa-accent) !important; }
 
-        /* Page tabs in the navbar. */
+        /* Page tabs in the navbar. A single horizontally-scrolling strip so the
+           navbar keeps its fixed height no matter how many pages are loaded. */
         .page-tabs {
             display: flex;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 6px;
             margin-left: 14px;
+            flex: 1 1 auto;
+            min-width: 0;            /* allow the strip to shrink so overflow-x engages */
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 2px;     /* room for the thin scrollbar without clipping tabs */
+            scrollbar-width: thin;
+            scrollbar-color: var(--pa-border-strong) transparent;
         }
+        .page-tabs::-webkit-scrollbar { height: 6px; }
+        .page-tabs::-webkit-scrollbar-track { background: transparent; }
+        .page-tabs::-webkit-scrollbar-thumb {
+            background: var(--pa-border-strong);
+            border-radius: 6px;
+        }
+        .page-tabs::-webkit-scrollbar-thumb:hover { background: var(--pa-accent-dim); }
         .page-tab {
             display: inline-flex;
             align-items: center;
@@ -81,6 +96,7 @@
             border: 1px solid var(--pa-border-strong);
             border-radius: 7px;
             overflow: hidden;
+            flex: 0 0 auto;          /* keep full size; the strip scrolls rather than squashing tabs */
         }
         .page-tab.active {
             border-color: var(--pa-accent);
@@ -115,6 +131,8 @@
             font-size: 0.82rem;
             padding: 5px 10px;
             cursor: pointer;
+            flex: 0 0 auto;          /* stays a fixed size at the end of the scrolling strip */
+            white-space: nowrap;
         }
         .page-add:hover { background: var(--pa-accent-soft); border-color: var(--pa-accent); }
 
@@ -403,11 +421,19 @@
             background: #fff;
         }
 
+        /* Live navbar height, kept in sync by JS so wrapping rows never overlap the content. */
+        :root { --nav-h: 72px; }
+
         /* ========== 顶部导航栏：固定不动 ========== */
         .navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            /* Wrap to a second row when the toolbar + page tabs can't share one line.
+               The real height is measured into --nav-h (see JS) so the content below always
+               starts just beneath the bar instead of being overlapped by it. */
+            flex-wrap: wrap;
+            row-gap: 4px;
             padding: 0.8rem 1.5rem;
             border-bottom: 1px solid #eee;
             background: #fff;
@@ -417,30 +443,36 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 72px;
+            min-height: 72px;   /* grows past 72px when it wraps; --nav-h tracks the real height */
             z-index: 100;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .nav-left {
             display: flex;
             align-items: center;
+            flex: 1 1 auto;
+            min-width: 0;       /* lets the page-tabs strip scroll instead of overflowing the navbar */
         }
         .logo-wrapper {
             width: 150px;
             display: flex;
             justify-content: center;
+            flex: 0 0 auto;
         }
         .logo-text {
             font-weight: 600;
             color: #333;
             text-decoration: none;
             font-size: 1rem;
+            white-space: nowrap;
         }
         .device-nav {
             margin-left: 20px;
             display: flex;
             gap: 1.8rem;
+            flex: 0 0 auto;
         }
+        .device-nav a { white-space: nowrap; }
         .device-nav a {
             color: #333;
             text-decoration: none;
@@ -460,7 +492,13 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex: 0 1 auto;     /* natural width on one row; wraps to its own row when space is tight */
         }
+        /* When the bar wraps to more than one row, center each row instead of the default
+           space-between (which would leave the wrapped toolbar row hugging the left edge).
+           Toggled by JS (see updateNavHeight). */
+        .navbar.navbar--wrapped { justify-content: center; }
+        .navbar.navbar--wrapped .nav-left { flex-grow: 0; justify-content: center; }
         .download-btn {
             background-color: #4ecdc4;
             color: white;
@@ -485,8 +523,8 @@
         /* ========== 内容容器：给顶部导航留出高度 ========== */
         .editor-layout {
             display: flex;
-            height: calc(100vh - 72px); /* exact fit below the navbar so the body itself never scrolls */
-            margin-top: 72px; /* 和导航栏高度对齐，避免被挡住 */
+            height: calc(100vh - var(--nav-h, 72px)); /* exact fit below the navbar so the body itself never scrolls */
+            margin-top: var(--nav-h, 72px); /* 和导航栏高度对齐，避免被挡住 */
         }
 
         /* ========== 左侧边栏：固定不动 ========== */
@@ -498,9 +536,9 @@
 
             /* 固定定位关键属性 */
             position: fixed;
-            top: 72px;
+            top: var(--nav-h, 72px);
             left: 0;
-            height: calc(100vh - 72px);
+            height: calc(100vh - var(--nav-h, 72px));
             overflow-y: auto; /* 边栏内容多了可以自己滚动 */
         }
         .sidebar-item {
@@ -529,7 +567,7 @@
             overflow-x: scroll; /* always-visible horizontal scroll bar for wide command rows */
             /* Fixed height (not min-height) makes this the scroll viewport, so the horizontal
                bar stays locked at the bottom of the screen instead of at the end of the content. */
-            height: calc(100vh - 72px);
+            height: calc(100vh - var(--nav-h, 72px));
         }
         /* Keep the horizontal scrollbar track always visible (not just on hover/overflow). */
         .editor-content { scrollbar-gutter: stable; }
@@ -162534,9 +162572,50 @@ async function getSaveStartIn() {
     return 'downloads';
 }
 
-// Saves the generated config. On modern browsers it opens a real "Save As" dialog, starting
-// in the last folder you saved to (or Downloads the first time). On older browsers it falls
-// back to a normal download to the browser's Downloads folder.
+// --- Retained folder handle for the pedal's config folder (e.g. D:\supersetup) ---
+// Once you point the editor at that folder ONCE, every "Save to Pedal" writes pageN.txt
+// straight into it, overwriting the previous file with no dialog. Browsers can't open a
+// folder by absolute path, so the folder is chosen once and its handle is remembered
+// (in IndexedDB). A stale/never-set handle falls back to the Save-As dialog / download.
+const SAVE_DIR_KEY = 'saveDir';
+let saveDirHandle = null;
+
+async function getSavedDirHandle() {
+    if (saveDirHandle) return saveDirHandle;
+    try {
+        const h = await _idbGet(SAVE_DIR_KEY);
+        if (h) { saveDirHandle = h; return h; }
+    } catch (e) {}
+    return null;
+}
+
+// Can we write into this handle? `interactive` allows a one-time browser permission prompt
+// (only valid on a user gesture, which the Save click provides). Without it we accept only
+// an already-granted handle so no prompt appears.
+async function ensureRwPermission(handle, interactive) {
+    try {
+        if (!handle || !handle.queryPermission) return false;
+        const opts = { mode: 'readwrite' };
+        if (await handle.queryPermission(opts) === 'granted') return true;
+        if (interactive && handle.requestPermission) {
+            return (await handle.requestPermission(opts)) === 'granted';
+        }
+    } catch (e) {}
+    return false;
+}
+
+// Overwrite (or create) a file by name inside a directory handle.
+async function writeFileInDir(dirHandle, name, blob) {
+    const fileHandle = await dirHandle.getFileHandle(name, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+}
+
+// Saves the generated config. If the pedal's config folder is already known and writable
+// (chosen once, e.g. D:\supersetup), the file is overwritten there silently - no dialog.
+// The first time, it asks you to pick that folder once; after that saves are automatic.
+// Browsers without the File System Access API fall back to a normal download.
 async function saveConfigFile(configData) {
     const blob = new Blob([configData], { type: 'text/plain' });
     // Export the active page under its own filename (e.g. page1.txt), defaulting to page0.txt.
@@ -162547,6 +162626,44 @@ async function saveConfigFile(configData) {
         if (active) outName = /\.txt$/i.test(active) ? active : (active + '.txt');
     } catch (e) {}
 
+    if (window.showDirectoryPicker) {
+        // 1) Silent overwrite into the known pedal folder - no dialog, no alert.
+        try {
+            const dir = await getSavedDirHandle();
+            if (dir && await ensureRwPermission(dir, true)) {
+                await writeFileInDir(dir, outName, blob);
+                if (typeof showToast === 'function') {
+                    showToast('Saved ' + outName + ' to ' + (dir.name || 'the pedal folder') + '.');
+                }
+                return;
+            }
+        } catch (err) {
+            // Folder moved/deleted or access lost - fall through to pick it again.
+        }
+
+        // 2) First time (or access lost): choose the pedal's config folder once. Every
+        //    later save then overwrites in place automatically.
+        try {
+            const opts = { mode: 'readwrite' };
+            try { opts.startIn = await getSaveStartIn(); } catch (e) {}
+            const dir = await window.showDirectoryPicker(opts);
+            if (await ensureRwPermission(dir, true)) {
+                saveDirHandle = dir;
+                try { await _idbSet(SAVE_DIR_KEY, dir); } catch (e) {}
+                await writeFileInDir(dir, outName, blob);
+                if (typeof showToast === 'function') {
+                    showToast('Saved ' + outName + ' to ' + (dir.name || 'the pedal folder') +
+                        '. Future saves overwrite here automatically.');
+                }
+                return;
+            }
+        } catch (err) {
+            if (err && err.name === 'AbortError') return; // cancelled the folder pick
+            // else fall through to the Save-As dialog / download
+        }
+    }
+
+    // 3) Fallback: a "Save As" dialog for browsers/paths where the folder handle isn't usable.
     if (window.showSaveFilePicker) {
         try {
             const opts = {
@@ -162563,6 +162680,7 @@ async function saveConfigFile(configData) {
             await writable.close();
             // Remember this location so the next save opens here.
             try { await _idbSet(SAVE_KEY, handle); } catch (e) {}
+            if (typeof showToast === 'function') showToast('Saved ' + outName + '.');
             return;
         } catch (err) {
             // If the user cancels the dialog, just stop quietly.
@@ -162571,7 +162689,7 @@ async function saveConfigFile(configData) {
         }
     }
 
-    // Fallback for browsers without the save-location picker.
+    // 4) Classic download fallback for browsers without the save-location picker.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -162816,7 +162934,41 @@ function renderPageTabs(){
   add.title = 'Create a new page (optionally cloned from an existing one)';
   add.addEventListener('click', newPage);
   bar.appendChild(add);
+
+  // The tab bar is a horizontal scroll strip; keep the active page in view so a
+  // newly created or switched-to page isn't left off-screen to the right.
+  const activeTab = bar.querySelector('.page-tab.active');
+  if (activeTab && typeof activeTab.scrollIntoView === 'function') {
+    activeTab.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+  }
+
+  // The bar may have grown/shrunk a row; update the content offset now (not a frame later).
+  if (typeof updateNavHeight === 'function') updateNavHeight();
 }
+
+// Keep --nav-h in sync with the navbar's real height. The navbar is fixed and may wrap
+// to a second row (many page tabs + the toolbar); the layout below offsets itself by
+// --nav-h, so a taller bar pushes the content down instead of overlapping it. Called on
+// load, on resize, by a ResizeObserver, and synchronously from renderPageTabs so adding
+// or removing pages never leaves the content offset stale for a frame.
+function updateNavHeight(){
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+  // Center the rows when the bar has wrapped (the toolbar dropped onto its own row);
+  // detected by the right group starting at/below the left group's bottom.
+  const left = nav.querySelector('.nav-left');
+  const right = nav.querySelector('.nav-right');
+  const wrapped = !!(left && right && right.offsetTop >= left.offsetTop + left.offsetHeight);
+  nav.classList.toggle('navbar--wrapped', wrapped);
+}
+(function initNavHeightSync(){
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  updateNavHeight();
+  if (typeof ResizeObserver === 'function') new ResizeObserver(updateNavHeight).observe(nav);
+  window.addEventListener('resize', updateNavHeight);
+})();
 
 
 
@@ -163758,6 +163910,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Delete every stored value for one step (loop) from globalCfg so a removed step
+        // leaves no trace. clearLoopRow only resets the visible inputs, and resetting a
+        // <select> with no "none" option lands on its first option (e.g. "value_inc"),
+        // which loopHasData would count as real data and re-show the step after a page
+        // switch. Removing the keys outright avoids that.
+        function clearLoopData(keyLabel, n) {
+            if (!keyLabel || !globalCfg || typeof globalCfg !== 'object') return;
+            const cmdPrefix = keyLabel + "_LOOP" + n + "_";
+            const colPrefix = keyLabel + "_LED_COLOR_" + n + "_";
+            Object.keys(globalCfg).forEach(k => {
+                if (k.indexOf(cmdPrefix) === 0 || k.indexOf(colPrefix) === 0) delete globalCfg[k];
+            });
+        }
+
         function setupStepControls(root) {
             const scope = root || document;
             const loops = Array.from(scope.querySelectorAll('.loop-row[data-loop]'));
@@ -163831,13 +163997,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const lastRow = visibleLoops[visibleLoops.length - 1];
                     if (!confirm('Remove step ' + lastRow.dataset.loop + '? Its settings will be cleared.')) return;
                     clearLoopRow(lastRow);
+                    clearLoopData(keyLabel, lastRow.dataset.loop); // drop the step's data from globalCfg
                     lastRow.style.display = 'none';
                     const next = shown - 1;
                     if (ktimesEl) {
                         ktimesEl.value = String(next);
                         globalCfg[keyLabel + '_KTIMES'] = String(next);
-                        if (typeof saveConfig === 'function') saveConfig();
                     }
+                    if (typeof saveConfig === 'function') saveConfig();
                     updateAddStepBtn(btn, next);
                     updateRemoveStepBtn(removeBtn, next);
                 });
