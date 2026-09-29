@@ -204,7 +204,8 @@
         #editor-container input,
         #editor-container select,
         #editor-container .qc-quickfill,
-        #editor-container .syn-quickfill {
+        #editor-container .syn-quickfill,
+        #editor-container .mc-quickfill {
             height: 34px !important;
             box-sizing: border-box !important;
             padding: 4px 8px !important;
@@ -289,7 +290,7 @@
             border-color: #e0857c !important;
             color: #e0857c !important;
         }
-        .qc-quickfill, .syn-quickfill {
+        .qc-quickfill, .syn-quickfill, .mc-quickfill {
             color: var(--pa-accent) !important;
             border-color: var(--pa-border-strong) !important;
             border-radius: 6px !important;
@@ -312,6 +313,7 @@
         .link-badge .bi { font-size: 0.8rem; }
         .link-qc  { color: #7fd1ff; background: rgba(90,170,230,0.16); border-color: rgba(90,170,230,0.5); }
         .link-syn { color: #ffcf7a; background: rgba(230,170,80,0.16); border-color: rgba(230,170,80,0.55); }
+        .link-mc  { color: #7ee0b8; background: rgba(78,205,196,0.16); border-color: rgba(78,205,196,0.55); }
 
         /* Brightness slider thumb in the color-wheel popup. */
         .cw-val { outline: none; }
@@ -483,7 +485,7 @@
         /* ========== 内容容器：给顶部导航留出高度 ========== */
         .editor-layout {
             display: flex;
-            min-height: 100vh;
+            height: calc(100vh - 72px); /* exact fit below the navbar so the body itself never scrolls */
             margin-top: 72px; /* 和导航栏高度对齐，避免被挡住 */
         }
 
@@ -524,9 +526,25 @@
             margin-left: 180px; /* 和边栏宽度对齐，避免被挡住 */
             padding: 2rem 2rem 2rem calc(2rem + 50px);
             overflow-y: auto;
-            overflow-x: auto; /* horizontal scroll bar for wide command rows */
-            min-height: calc(100vh - 72px);
+            overflow-x: scroll; /* always-visible horizontal scroll bar for wide command rows */
+            /* Fixed height (not min-height) makes this the scroll viewport, so the horizontal
+               bar stays locked at the bottom of the screen instead of at the end of the content. */
+            height: calc(100vh - 72px);
         }
+        /* Keep the horizontal scrollbar track always visible (not just on hover/overflow). */
+        .editor-content { scrollbar-gutter: stable; }
+        .editor-content::-webkit-scrollbar { height: 12px; width: 12px; }
+        .editor-content::-webkit-scrollbar-track {
+            background: var(--pa-panel-2);
+            border-radius: 8px;
+        }
+        .editor-content::-webkit-scrollbar-thumb {
+            background: var(--pa-border-strong);
+            border-radius: 8px;
+            border: 2px solid var(--pa-panel-2);
+        }
+        .editor-content::-webkit-scrollbar-thumb:hover { background: var(--pa-accent); }
+        .editor-content { scrollbar-width: thin; scrollbar-color: var(--pa-border-strong) var(--pa-panel-2); }
 
         /* Put the QC Ch / SYN Ch selectors to the LEFT of Import and Reset.
            nav-right is a flexbox, so ordering the labels first does it cleanly. */
@@ -549,7 +567,7 @@
             .nav-right { flex-wrap: wrap !important; gap: 0.5rem !important; }
 
             /* Stack the layout vertically; nothing is fixed or offset anymore. */
-            .editor-layout { margin-top: 0 !important; flex-direction: column !important; }
+            .editor-layout { margin-top: 0 !important; flex-direction: column !important; height: auto !important; }
             .sidebar {
                 position: static !important;
                 width: 100% !important;
@@ -570,6 +588,8 @@
                 margin-left: 0 !important;
                 padding: 1rem 1rem 2.5rem !important;
                 min-height: 0 !important;
+                height: auto !important;      /* on mobile, let the page scroll naturally */
+                overflow-x: auto !important;
             }
 
             /* Setting rows wrap instead of overflowing; fixed-width labels relax. */
@@ -620,6 +640,8 @@
             <div class="page-tabs" id="pageTabs"></div>
         </div>
         <div class="nav-right">
+            <!-- Opens the MIDI Captain Mini 6 documentation (manual + editor reference) in a new tab. -->
+            <a class="download-btn" id="docsLink" href="docs.html" target="_blank" rel="noopener" title="MIDI Captain Mini 6 documentation and manual">&#128214; Docs</a>
             <!-- Import a single page file, or a whole folder of page#.txt files. -->
             <button class="download-btn" id="importBtn">Import</button>
             <input type="file" id="importFileInput" accept=".txt,text/plain" style="display:none;">
@@ -627,6 +649,8 @@
             <input type="file" id="importDirInput" webkitdirectory directory multiple style="display:none;">
             <!-- Reset restores the settings you last imported (or the defaults if nothing was imported). -->
             <button class="download-btn" id="resetAllBtn">Reset</button>
+            <!-- Swap all settings between two footswitches. -->
+            <button class="download-btn" id="swapKeysBtn" title="Swap every setting (colors, modes, commands) between two keys">Swap Keys</button>
             <button class="download-btn" id="downloadBtn">Save to Pedal</button>
             <!-- Quad Cortex helper: the MIDI channel your QC listens on. Used by the
                  per-command "QC quick-fill" dropdowns to fill in the right channel. -->
@@ -163291,6 +163315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activePage = name;                                 // jump to the page we just imported
         globalCfg = pages[activePage];
         renderActivePage();
+        if (typeof applyDeviceChannels === 'function') applyDeviceChannels(globalCfg); // sync QC/SYN Ch from the file
         if (typeof showToast === 'function') {
           showToast('Imported "' + file.name + '". Your settings have been loaded.');
         }
@@ -163342,6 +163367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         globalCfg = pages[activePage];
         importedName = names.length + ' file' + (names.length === 1 ? '' : 's') + ' (' + names.join(', ') + ')';
         renderActivePage();
+        if (typeof applyDeviceChannels === 'function') applyDeviceChannels(globalCfg); // sync QC/SYN Ch from the file
         if (typeof showToast === 'function') {
           showToast('Imported ' + names.length + ' file' + (names.length === 1 ? '' : 's') +
             '. Use the tabs to switch between them.');
@@ -163353,6 +163379,108 @@ document.addEventListener('DOMContentLoaded', () => {
       }).then(() => { importDirInput.value = ""; });
     });
   }
+
+  // ---- Swap Keys: move every setting between two footswitches ----
+  // Footswitches on the MIDI Captain Mini, in on-screen order. The value is the id used in
+  // the config keys (KEY1_..., KEYA_..., etc.); the label is what we show the user.
+  // The MIDI Captain Mini 6 has six physical footswitches. Keys 4/5/D/E exist in the
+  // shared file format (for larger models) but aren't on this unit, so we don't list them.
+  const KEY_LIST = [
+    ['1', 'Key 1'], ['2', 'Key 2'], ['3', 'Key 3'],
+    ['A', 'Key A'], ['B', 'Key B'], ['C', 'Key C']
+  ];
+
+  // Swap all values between two footswitches by exchanging the DOM control values and firing
+  // change events. Firing change reveals/hides command groups, refreshes colors, steps and
+  // badges, and writes the swap back into the in-memory config via the auto-save handler.
+  function swapKeys(a, b) {
+    if (a === b) return;
+    const pa = 'KEY' + a + '_', pb = 'KEY' + b + '_';
+    const aEls = Array.from(document.querySelectorAll('.cfg'))
+      .filter(el => (el.dataset.key || '').indexOf(pa) === 0);
+    aEls.forEach(elA => {
+      const suffix = elA.dataset.key.slice(pa.length);
+      const elB = document.querySelector('[data-key="' + pb + suffix + '"]');
+      if (!elB) return;
+      const t = elA.value; elA.value = elB.value; elB.value = t;
+    });
+    // Fire change on every affected control (DOM order puts TYPE selects before their value
+    // fields, so command groups reveal correctly).
+    Array.from(document.querySelectorAll('.cfg')).forEach(el => {
+      const k = el.dataset.key || '';
+      if (k.indexOf(pa) === 0 || k.indexOf(pb) === 0) {
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+    if (typeof enhancePanel === 'function') enhancePanel();
+  }
+
+  // Build (once) and open the small "swap" dialog.
+  let swapModal = null;
+  function openSwapModal() {
+    if (!swapModal) {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:3000;' +
+        'display:none; align-items:center; justify-content:center;';
+      const panel = document.createElement('div');
+      panel.style.cssText = 'background:var(--pa-panel-2,#242a30); color:var(--pa-text,#e8edf1);' +
+        'border:1px solid var(--pa-border-strong,#3a444d); border-radius:12px; padding:20px 22px;' +
+        'width:320px; max-width:92vw; box-shadow:0 18px 44px rgba(0,0,0,0.6); font-size:0.95rem;';
+      const mkSelect = () => {
+        const s = document.createElement('select');
+        s.style.cssText = 'width:100%; margin:6px 0 14px; padding:8px; border-radius:7px;' +
+          'background:var(--pa-elev,#1b2025); color:var(--pa-text,#e8edf1);' +
+          'border:1px solid var(--pa-border-strong,#3a444d);';
+        KEY_LIST.forEach(([val, label]) => {
+          const o = document.createElement('option'); o.value = val; o.textContent = label; s.appendChild(o);
+        });
+        return s;
+      };
+      const title = document.createElement('div');
+      title.textContent = 'Swap key settings';
+      title.style.cssText = 'font-weight:700; font-size:1.05rem; margin-bottom:12px;';
+      const l1 = document.createElement('label'); l1.textContent = 'Swap this key';
+      const selA = mkSelect();
+      const l2 = document.createElement('label'); l2.textContent = 'With this key';
+      const selB = mkSelect(); selB.value = 'B';
+      const note = document.createElement('div');
+      note.textContent = 'Everything moves: colors, LED mode, keytimes, names and all commands.';
+      note.style.cssText = 'font-size:0.8rem; color:var(--pa-text-dim,#9aa5ad); margin:-6px 0 14px;';
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex; gap:10px; justify-content:flex-end;';
+      const cancel = document.createElement('button');
+      cancel.className = 'download-btn'; cancel.textContent = 'Cancel';
+      cancel.style.cssText = 'background:transparent; color:var(--pa-text,#e8edf1); border:1px solid var(--pa-border-strong,#3a444d);';
+      const doSwap = document.createElement('button');
+      doSwap.className = 'download-btn'; doSwap.textContent = 'Swap';
+      const close = () => { overlay.style.display = 'none'; };
+      cancel.addEventListener('click', close);
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+      doSwap.addEventListener('click', () => {
+        const a = selA.value, b = selB.value;
+        if (a === b) { alert('Pick two different keys to swap.'); return; }
+        swapKeys(a, b);
+        close();
+        if (typeof showToast === 'function') {
+          const la = (KEY_LIST.find(k => k[0] === a) || [, a])[1];
+          const lb = (KEY_LIST.find(k => k[0] === b) || [, b])[1];
+          showToast('Swapped ' + la + ' and ' + lb + '.');
+        }
+      });
+      btnRow.appendChild(cancel); btnRow.appendChild(doSwap);
+      panel.appendChild(title);
+      panel.appendChild(l1); panel.appendChild(selA);
+      panel.appendChild(l2); panel.appendChild(selB);
+      panel.appendChild(note); panel.appendChild(btnRow);
+      overlay.appendChild(panel);
+      document.body.appendChild(overlay);
+      swapModal = overlay;
+    }
+    swapModal.style.display = 'flex';
+  }
+
+  const swapBtn = document.getElementById('swapKeysBtn');
+  if (swapBtn) swapBtn.addEventListener('click', openSwapModal);
 });
 
 
@@ -163823,6 +163951,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return DEVICE_BY_CCVAL[cc + ':' + val] || '';
         }
 
+        // Scan an imported config for the MIDI channels its QC and SYN commands use, so the
+        // navbar "QC Ch" / "SYN Ch" selectors can be set to match the file. Returns the first
+        // channel seen for each device (rig channels are the same across every command).
+        function deriveDeviceChannels(cfg) {
+            const res = { qc: null, syn: null };
+            if (!cfg) return res;
+            Object.keys(cfg).forEach(k => {
+                const m = k.match(/^(.*_CMD\d+)_TYPE$/);
+                if (!m) return;
+                if (String(cfg[k]).toLowerCase() !== 'cc') return;
+                const base = m[1];
+                const cc = parseInt(cfg[base + '_VALUE1'], 10);
+                const val = parseInt(cfg[base + '_VALUE2'], 10);
+                const ch = parseInt(cfg[base + '_CH'], 10);
+                if (isNaN(ch) || ch < 1 || ch > 16) return;
+                const dev = detectDevice(cc, val);
+                if (dev === 'QC' && res.qc == null) res.qc = ch;
+                if (dev === 'SYN' && res.syn == null) res.syn = ch;
+            });
+            return res;
+        }
+
+        // Update the navbar channel selectors from an imported config (only when a match is found).
+        function applyDeviceChannels(cfg) {
+            const ch = deriveDeviceChannels(cfg);
+            const setSel = (id, val, storeKey) => {
+                if (val == null) return;
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                sel.value = String(val);
+                try { localStorage.setItem(storeKey, String(val)); } catch (e) {}
+                sel.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+            setSel('qcChannelSelect', ch.qc, 'qc_midi_channel');
+            setSel('synChannelSelect', ch.syn, 'syn_midi_channel');
+        }
+
         // The MIDI channel the QC listens on (from the navbar selector, saved locally).
         function getQcChannel() {
             const sel = document.getElementById('qcChannelSelect');
@@ -163869,6 +164034,113 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Convenience wrapper kept for the Quad Cortex quick-fill.
         function qcFill(base, cc, val) { ccFill(base, cc, val, getQcChannel()); }
+
+        // ============ MIDI Captain (device-native) quick-fill ============
+        // Beyond plain CC, the MIDI Captain has its own command types: page/preset
+        // navigation, relative Program Change / bank, the Time Engine (tap/looper),
+        // System Common and Real Time transport. These come from the MIDI Captain
+        // MINI6 FW5.0 manual. Each action fills the matching command type and its
+        // parameter fields - no external MIDI channel is involved.
+        const MC_ACTIONS = [
+            { group: "Page / Preset", items: [
+                { label: "Next Page (preset +)", fill: { type: 'preset', preset: 'value_inc' } },
+                { label: "Previous Page (preset -)", fill: { type: 'preset', preset: 'value_dec' } }
+            ]},
+            { group: "Program Change", items: [
+                { label: "Program Change Up", fill: { type: 'pc', pcValue: 'value_inc' } },
+                { label: "Program Change Down", fill: { type: 'pc', pcValue: 'value_dec' } },
+                { label: "Bank Up", fill: { type: 'pc', pcValue: 'bank_inc' } },
+                { label: "Bank Down", fill: { type: 'pc', pcValue: 'bank_dec' } }
+            ]},
+            { group: "Time Engine (Tap / Looper)", items: [
+                { label: "Time Engine +", fill: { type: 'timeengine', te: 'value_inc' } },
+                { label: "Time Engine -", fill: { type: 'timeengine', te: 'value_dec' } },
+                { label: "Looper Begin", fill: { type: 'timeengine', te: 'begin' } },
+                { label: "Looper Stop", fill: { type: 'timeengine', te: 'stop' } },
+                { label: "Looper Record", fill: { type: 'timeengine', te: 'record' } }
+            ]},
+            { group: "Transport (Real Time)", items: [
+                { label: "Start", fill: { type: 'realtime', rt: 'start' } },
+                { label: "Continue", fill: { type: 'realtime', rt: 'continue' } },
+                { label: "Stop", fill: { type: 'realtime', rt: 'stop' } },
+                { label: "System Reset", fill: { type: 'realtime', rt: 'systemreset' } }
+            ]},
+            { group: "System Common", items: [
+                { label: "Song Select +", fill: { type: 'systemcommon', sys: 'SongSelectinc' } },
+                { label: "Song Select -", fill: { type: 'systemcommon', sys: 'SongSelectdec' } },
+                { label: "Song Position Reset", fill: { type: 'systemcommon', sys: 'SongPPreset' } }
+            ]}
+        ];
+
+        // Command types that are MIDI Captain-native (drives the badge, incl. on import).
+        const MC_TYPES = new Set(['preset', 'timeengine', 'systemcommon', 'realtime']);
+        // Relative PC actions that are pedal-native navigation (vs. a plain numeric PC).
+        const MC_PC_VALUES = new Set(['value_inc', 'value_dec', 'bank_inc', 'bank_dec']);
+
+        // Whether a command (by its current field values) is a MIDI Captain built-in action.
+        function isMidiCaptainCommand(base) {
+            const q = (s) => document.querySelector('[data-key="' + base + s + '"]');
+            const typeEl = q('_TYPE');
+            const type = ((typeEl && typeEl.value) || '').toLowerCase();
+            if (MC_TYPES.has(type)) return true;
+            if (type === 'pc') {
+                const pcEl = q('_PC_VALUE');
+                const pcv = ((pcEl && pcEl.value) || '').toLowerCase();
+                if (MC_PC_VALUES.has(pcv)) return true;
+            }
+            return false;
+        }
+
+        // Fill a command with a MIDI Captain-native action (sets the type + its parameter).
+        function mcFill(base, spec) {
+            const q = (s) => document.querySelector('[data-key="' + base + s + '"]');
+            const fire = (el) => { if (el) el.dispatchEvent(new Event('change', { bubbles: true })); };
+            const typeSel = q('_TYPE');
+            if (!typeSel || !spec) return;
+            typeSel.value = spec.type;
+            fire(typeSel); // reveals the correct parameter group via the inline onchange
+            // Default a trigger if none is set, so the command actually fires.
+            const stateSel = q('_STATE');
+            if (stateSel && (!stateSel.value || stateSel.value === 'none')) { stateSel.value = 'down'; fire(stateSel); }
+            if (spec.type === 'preset') { const el = q('_PRESET'); if (el) { el.value = spec.preset; fire(el); } }
+            else if (spec.type === 'timeengine') { const el = q('_TIMEENGINE'); if (el) { el.value = spec.te; fire(el); } }
+            else if (spec.type === 'realtime') { const el = q('_REALTIME'); if (el) { el.value = spec.rt; fire(el); } }
+            else if (spec.type === 'systemcommon') {
+                const el = q('_SYSCMD'); if (el) { el.value = spec.sys; fire(el); }
+                if (spec.param !== undefined) { const p = q('_SYSPARAM'); if (p) { p.value = String(spec.param); fire(p); } }
+            } else if (spec.type === 'pc') {
+                const ch = q('_PC_CH'); if (ch && !ch.value) { ch.value = '1'; fire(ch); }
+                const pv = q('_PC_VALUE'); if (pv) { pv.value = spec.pcValue; fire(pv); }
+            }
+        }
+
+        // Build a quick-fill dropdown from spec-based actions (used by the MIDI Captain fill).
+        // Each item is { label, fill }; onPick receives the fill spec.
+        function buildActionQuickFill(groups, placeholder, cls, titleText, onPick, onClear) {
+            const sel = document.createElement('select');
+            sel.className = cls + ' cfg-ignore';
+            sel.title = titleText;
+            sel.style.cssText = 'margin-right:8px; padding:4px; border-radius:4px; max-width:200px;';
+            const flat = [];
+            const first = document.createElement('option'); first.value = ''; first.textContent = placeholder; sel.appendChild(first);
+            const noneOpt = document.createElement('option'); noneOpt.value = '__none__'; noneOpt.textContent = 'None (clear this command)'; sel.appendChild(noneOpt);
+            groups.forEach(g => {
+                const og = document.createElement('optgroup'); og.label = g.group;
+                g.items.forEach(it => {
+                    const idx = flat.push(it) - 1;
+                    const o = document.createElement('option'); o.value = String(idx); o.textContent = it.label; og.appendChild(o);
+                });
+                sel.appendChild(og);
+            });
+            sel.addEventListener('change', () => {
+                const v = sel.value; sel.value = '';
+                if (!v) return;
+                if (v === '__none__') { if (onClear) onClear(); return; }
+                const it = flat[parseInt(v, 10)];
+                if (it && onPick) onPick(it.fill);
+            });
+            return sel;
+        }
 
         // Build one quick-fill dropdown from an actions list. onPick(cc, val) does the fill.
         function buildQuickFill(actions, placeholder, cls, titleText, onPick, onClear) {
@@ -163944,25 +164216,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     (cc, val) => ccFill(base, cc, val, getSynChannel()),
                     () => clearCommand(base)
                 );
-                // Place the command Type selector first, then the QC and SYN quick-fills, then the badge.
+                const mc = buildActionQuickFill(
+                    MC_ACTIONS, 'MC \u26A1 quick-fill…', 'mc-quickfill',
+                    'MIDI Captain quick-fill: pick a built-in pedal function (page/preset, Program Change or bank, time engine, transport, system common).',
+                    (spec) => mcFill(base, spec),
+                    () => clearCommand(base)
+                );
+                // Place the command Type selector first, then the QC, SYN and MC quick-fills, then the badge.
                 typeSel.insertAdjacentElement('afterend', qc);
                 qc.insertAdjacentElement('afterend', syn);
-                syn.insertAdjacentElement('afterend', badge);
+                syn.insertAdjacentElement('afterend', mc);
+                mc.insertAdjacentElement('afterend', badge);
 
-                // Show the QC/SYN badge whenever this command's CC matches a known device action.
+                // Show a QC / SYN / MIDI Captain badge whenever this command matches a known action.
                 // Runs now (so freshly imported commands are labeled) and on any later change,
                 // which also covers the quick-fills (they fire change events as they fill).
                 const v1 = document.querySelector('[data-key="' + base + '_VALUE1"]');
                 const v2 = document.querySelector('[data-key="' + base + '_VALUE2"]');
                 const refreshBadge = () => {
-                    const isCc = (typeSel.value || '').toLowerCase() === 'cc';
-                    const cc = v1 ? parseInt(v1.value, 10) : NaN;
-                    const val = v2 ? parseInt(v2.value, 10) : NaN;
-                    setLinkBadge(badge, isCc ? detectDevice(cc, val) : '');
+                    const type = (typeSel.value || '').toLowerCase();
+                    let device = '';
+                    if (type === 'cc') {
+                        const cc = v1 ? parseInt(v1.value, 10) : NaN;
+                        const val = v2 ? parseInt(v2.value, 10) : NaN;
+                        device = detectDevice(cc, val);        // 'QC' | 'SYN' | ''
+                    } else if (isMidiCaptainCommand(base)) {
+                        device = 'MC';
+                    }
+                    setLinkBadge(badge, device);
                 };
-                typeSel.addEventListener('change', refreshBadge);
-                if (v1) v1.addEventListener('change', refreshBadge);
-                if (v2) v2.addEventListener('change', refreshBadge);
+                // Re-check the badge on any field that can change what the command is.
+                ['_TYPE', '_VALUE1', '_VALUE2', '_PC_VALUE', '_PRESET', '_TIMEENGINE', '_REALTIME', '_SYSCMD'].forEach(suf => {
+                    const el = document.querySelector('[data-key="' + base + suf + '"]');
+                    if (el) el.addEventListener('change', refreshBadge);
+                });
                 typeSel._refreshBadge = refreshBadge; // so we can re-check after a silent page switch
                 refreshBadge();
             });
@@ -163989,6 +164276,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.className = 'link-badge link-syn';
                 el.innerHTML = '<i class="bi bi-link-45deg"></i> SYN-20IR';
                 el.title = 'This command was filled from the Synergy SYN-20IR quick-fill.';
+                el.style.display = '';
+            } else if (device === 'MC') {
+                el.className = 'link-badge link-mc';
+                el.innerHTML = '<i class="bi bi-link-45deg"></i> MIDI Captain';
+                el.title = 'This command uses a MIDI Captain built-in function (page/preset, PC or bank, time engine, transport, system common).';
                 el.style.display = '';
             } else {
                 el.className = 'link-badge';

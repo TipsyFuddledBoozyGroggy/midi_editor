@@ -1,0 +1,109 @@
+[GlobalSetup]
+page_name = [ToM1]
+ledbright = [80]
+screenbright = [80]
+long_press_timing = [1]
+WIRELESS_2.4G = [on]
+WIRELESS_ID   = [8]
+WIRELESS_dB   = [6]
+BATTERY_CHARGE= [off]
+group_number = [6]
+display_number_ABC = [abc6]
+display_bank_offset = [1]
+pc_open_num = [0]
+PC_Bank_Select = [4]
+PC_group_0 = [1][CC][0][0]
+PC_group_1 = [1][CC][0][1]
+PC_group_2 = [1][CC][0][2]
+PC_group_3 = [1][CC][0][3]
+PC_group_4 = 
+PC_group_5 = 
+PC_group_6 = 
+PC_group_7 = 
+PC_group_8 = 
+PC_group_9 = 
+CC_value_gropnumber = 
+tapcountMIN = [20]
+tapcountMAX = [200]
+midithrough = [on]
+externalmidicontrol = [on]
+externalmidicontrolch = [16]
+encoderCH = [1]
+encoderCCnum = [62]
+encoderkeyCCtoggle = [76]
+exp1_CH = [1]
+exp1_CC = [1]
+exp1_min = [0]
+exp1_max = [127]
+exp2_CH = [1]
+exp2_CC = [2]
+exp2_min = [0]
+exp2_max = [127]
+
+[key1]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+short_up1_name = []
+short_up1 = [1][PC][auto3][-]
+
+[key2]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+short_up1_name = []
+short_up1 = [1][PC][auto4][-]
+
+[key3]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+long1_name = []
+long1 = [preset][value_inc]
+short_up1_name = []
+short_up1 = [1][PC][auto5][-]
+
+[keyA]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+long1_name = [BANK_-]
+long1 = [1][PC][bank_dec][-]
+short_up1_name = []
+short_up1 = [1][PC][auto0][-]
+
+[keyB]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+long1_name = [BANK_+]
+long1 = [1][PC][bank_inc][-]
+short_up1_name = []
+short_up1 = [1][PC][auto1][-]
+
+[keyC]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+long1_name = []
+long1 = [preset][value_dec]
+short_up1_name = []
+short_up1 = [1][PC][auto2][-]

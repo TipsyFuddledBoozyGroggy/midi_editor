@@ -1,0 +1,120 @@
+[GlobalSetup]
+page_name = [BIAS]
+ledbright = [80]
+screenbright = [80]
+long_press_timing = [1]
+WIRELESS_2.4G = [on]
+WIRELESS_ID   = [8]
+WIRELESS_dB   = [6]
+BATTERY_CHARGE= [off]
+group_number = [4]
+display_number_ABC = [abc4]
+display_bank_offset = [1]
+pc_open_num = [0]
+PC_Bank_Select = [1]
+PC_group_0 = 
+PC_group_1 = 
+PC_group_2 = 
+PC_group_3 = 
+PC_group_4 = 
+PC_group_5 = 
+PC_group_6 = 
+PC_group_7 = 
+PC_group_8 = 
+PC_group_9 = 
+CC_value_gropnumber = 
+tapcountMIN = [20]
+tapcountMAX = [200]
+midithrough = [on]
+externalmidicontrol = [on]
+externalmidicontrolch = [16]
+encoderCH = [1]
+encoderCCnum = [20]
+encoderkeyCCtoggle = [10]
+exp1_CH = [1]
+exp1_CC = [0]
+exp1_min = [0]
+exp1_max = [127]
+exp2_CH = [1]
+exp2_CC = [1]
+exp2_min = [0]
+exp2_max = [127]
+
+[key1]
+keytimes = [2]
+ledmode = [normal]
+ledcolor0 = [0xA020F0][0xA020F0][0xA020F0]
+
+ledcolor1 = [0xA020F0][0xA020F0][0xA020F0]
+short_dw1_name = []
+short_dw1 = [1][CC][80][127]
+
+ledcolor2 = [0x000000][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][CC][80][0]
+
+[key2]
+keytimes = [2]
+ledmode = [normal]
+ledcolor0 = [0xA020F0][0xA020F0][0xA020F0]
+
+
+ledcolor1 = [0xA020F0][0xA020F0][0xA020F0]
+short_dw1_name = []
+short_dw1 = [1][CC][81][127]
+
+ledcolor2 = [0x000000][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][CC][81][0]
+
+[key3]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xCCCCCC][0xCCCCCC][0xCCCCCC]
+
+
+ledcolor1 = [0xCCCCCC][0xCCCCCC][0xCCCCCC]
+short_dw1_name = [PC_+]
+short_dw1 = [1][PC][value_inc][-]
+long1_name = []
+long1 = [preset][value_inc]
+
+[keyA]
+keytimes = [2]
+ledmode = [normal]
+ledcolor0 = [0xA020F0][0xA020F0][0xA020F0]
+
+
+ledcolor1 = [0xA020F0][0xA020F0][0xA020F0]
+short_dw1_name = []
+short_dw1 = [1][CC][82][127]
+
+ledcolor2 = [0x000000][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][CC][82][0]
+
+[keyB]
+keytimes = [2]
+ledmode = [normal]
+ledcolor0 = [0xA020F0][0xA020F0][0xA020F0]
+
+
+ledcolor1 = [0xA020F0][0xA020F0][0xA020F0]
+short_dw1_name = []
+short_dw1 = [1][CC][83][127]
+
+ledcolor2 = [0x000000][0x000000][0x000000]
+short_dw2_name = []
+short_dw2 = [1][CC][83][0]
+
+[keyC]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xCCCCCC][0xCCCCCC][0xCCCCCC]
+
+
+ledcolor1 = [0xCCCCCC][0xCCCCCC][0xCCCCCC]
+short_dw1_name = [PC_-]
+short_dw1 = [1][PC][value_dec][-]
+long1_name = []
+long1 = [preset][value_dec]

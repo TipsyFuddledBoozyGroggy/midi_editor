@@ -1,0 +1,163 @@
+[GlobalSetup]
+page_name = [J_May]
+ledbright = [80]
+screenbright = [80]
+long_press_timing = [1]
+WIRELESS_2.4G = [on]
+WIRELESS_ID   = [8]
+WIRELESS_dB   = [6]
+BATTERY_CHARGE= [off]
+group_number = [4]
+display_number_ABC = [abc4]
+display_bank_offset = [0]
+pc_open_num = [0]
+PC_Bank_Select = [1]
+PC_group_0 = 
+PC_group_1 = 
+PC_group_2 = 
+PC_group_3 = 
+PC_group_4 = 
+PC_group_5 = 
+PC_group_6 = 
+PC_group_7 = 
+PC_group_8 = 
+PC_group_9 = 
+CC_value_gropnumber = 
+tapcountMIN = [20]
+tapcountMAX = [200]
+midithrough = [on]
+externalmidicontrol = [off]
+externalmidicontrolch = [1]
+encoderCH = [1]
+encoderCCnum = [20]
+encoderkeyCCtoggle = [10]
+exp1_CH = [1]
+exp1_CC = [0]
+exp1_min = [0]
+exp1_max = [127]
+exp2_CH = [1]
+exp2_CC = [1]
+exp2_min = [0]
+exp2_max = [127]
+
+[key1]
+keytimes = [1]
+ledmode = [select]
+ledcolor0 = [0xFF482C][0xFF482C][0xFF482C]
+
+ledcolor1 = [0xFF482C][0xFF482C][0xFF482C]
+short_dw1_name = []
+short_dw1 = [16][CC][24][0] [16][CC][25][2]
+long1_name = [AII]
+long1 = [1][CC][43][4]
+short_up1_name = [AI]
+short_up1 = [1][CC][43][0]
+
+[key2]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x3964FF][0x3964FF][0x3964FF]
+
+
+ledcolor1 = [0x3964FF][0x3964FF][0x3964FF]
+short_dw1_name = []
+short_dw1 = [16][CC][24][0] [16][CC][25][2]
+long1_name = []
+long1 = [1][CC][43][5]
+short_up1_name = [BI]
+short_up1 = [1][CC][43][1]
+
+[key3]
+keytimes = [3]
+ledmode = [normal]
+ledcolor0 = [0x00FFFF][0x00FFFF][0x00FFFF]
+
+
+ledcolor1 = [0x00FFFF][0x00FFFF][0x00FFFF]
+long1_name = []
+long1 = [1][CC][32][1] [1][PC][0][-]
+short_up1_name = [SCENE]
+short_up1 = [1][CC][47][0]
+long_up1_name = []
+long_up1 = [preset][value_inc]
+
+ledcolor2 = [0xFFAA00][0xFFAA00][0xFFAA00]
+long2_name = []
+long2 = [1][CC][32][1] [1][PC][0][-]
+short_up2_name = [PRESET]
+short_up2 = [1][CC][47][1]
+long_up2_name = []
+long_up2 = [preset][value_inc]
+
+ledcolor3 = [0xFF3399][0xFF3399][0xFF3399]
+long3_name = []
+long3 = [1][CC][32][1] [1][PC][0][-]
+short_up3_name = []
+short_up3 = [1][CC][47][2]
+long_up3_name = []
+long_up3 = [preset][value_inc]
+
+[key4]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x000000][0x000000][0x000000]
+
+
+[key5]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x000000][0x000000][0x000000]
+
+
+[keyA]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xFFEE4C][0xFFEE4C][0xFFEE4C]
+
+
+ledcolor1 = [0xFFEE4C][0xFFEE4C][0xFFEE4C]
+short_dw1_name = []
+short_dw1 = [16][CC][24][0] [16][CC][25][2]
+long1_name = [CII]
+long1 = [1][CC][43][6]
+short_up1_name = [CI]
+short_up1 = [1][CC][43][2]
+
+[keyB]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xFF6CD4][0xFF6CD4][0xFF6CD4]
+
+
+ledcolor1 = [0xFF6CD4][0xFF6CD4][0xFF6CD4]
+short_dw1_name = []
+short_dw1 = [16][CC][24][0] [16][CC][25][2]
+long1_name = [DII]
+long1 = [1][CC][43][7]
+short_up1_name = [DI]
+short_up1 = [1][CC][43][3]
+
+[keyC]
+keytimes = [1]
+ledmode = [tap]
+ledcolor0 = [0x4B0082][0x4B0082][0x4B0082]
+
+
+ledcolor1 = [0x4B0082][0x4B0082][0x4B0082]
+long1_name = []
+long1 = [1][CC][32][1] [1][PC][0][-]
+short_up1_name = [TAP]
+short_up1 = [1][CC][44][127]
+long_up1_name = []
+long_up1 = [preset][value_dec]
+
+[keyD]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x000000][0x000000][0x000000]
+
+
+[keyE]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0x000000][0x000000][0x000000]

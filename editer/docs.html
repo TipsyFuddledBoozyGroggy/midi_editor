@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIDI Captain Mini 6 — Documentation</title>
+<style>
+  :root {
+    --pa-bg:#14181b; --pa-panel:#1b2025; --pa-panel-2:#242a30; --pa-elev:#1b2025;
+    --pa-text:#e8edf1; --pa-text-dim:#9aa5ad; --pa-border:#2c343b; --pa-border-strong:#3a444d;
+    --pa-accent:#4ecdc4; --pa-accent-dim:#3ab5a8; --pa-accent-soft:rgba(78,205,196,0.14);
+    --pa-warn:#ffcf7a; --pa-warn-soft:rgba(230,170,80,0.14);
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--pa-bg); color:var(--pa-text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6; }
+  a { color:var(--pa-accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .wrap { display:flex; gap:32px; max-width:1180px; margin:0 auto; padding:24px 24px 80px; }
+  nav.toc {
+    position:sticky; top:24px; align-self:flex-start; width:230px; flex:0 0 230px;
+    max-height:calc(100vh - 48px); overflow-y:auto; font-size:0.9rem;
+    border-right:1px solid var(--pa-border); padding-right:16px;
+  }
+  nav.toc a { display:block; color:var(--pa-text-dim); padding:3px 0; }
+  nav.toc a:hover { color:var(--pa-text); }
+  nav.toc .grp { color:var(--pa-text); font-weight:700; margin:14px 0 4px; letter-spacing:.02em; }
+  main { flex:1; min-width:0; }
+  header.hero {
+    border:1px solid var(--pa-border-strong); border-radius:14px;
+    background:linear-gradient(180deg,var(--pa-panel-2),var(--pa-panel)); padding:26px 28px; margin-bottom:26px;
+  }
+  header.hero h1 { margin:0 0 6px; font-size:1.7rem; }
+  header.hero p { margin:0; color:var(--pa-text-dim); }
+  .pillrow { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+  .pill {
+    display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:9px;
+    border:1px solid var(--pa-border-strong); background:var(--pa-elev); color:var(--pa-text); font-size:.9rem;
+  }
+  .pill:hover { border-color:var(--pa-accent); text-decoration:none; }
+  h2 { font-size:1.3rem; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--pa-border); }
+  h3 { font-size:1.05rem; margin:22px 0 8px; color:var(--pa-accent); }
+  p, li { color:var(--pa-text); }
+  code, .mono { font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace; font-size:.9em;
+    background:var(--pa-panel-2); padding:1px 6px; border-radius:5px; border:1px solid var(--pa-border); }
+  pre { background:var(--pa-panel-2); border:1px solid var(--pa-border-strong); border-radius:10px;
+    padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; border:none; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:12px 0; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 11px; border-bottom:1px solid var(--pa-border); vertical-align:top; }
+  th { color:var(--pa-text); background:var(--pa-panel-2); border-bottom:1px solid var(--pa-border-strong); }
+  td code { white-space:nowrap; }
+  .note, .warn {
+    border-radius:10px; padding:12px 15px; margin:14px 0; border:1px solid var(--pa-border-strong);
+    background:var(--pa-accent-soft);
+  }
+  .warn { background:var(--pa-warn-soft); border-color:rgba(230,170,80,0.5); }
+  .note b, .warn b { color:var(--pa-text); }
+  .layout { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; max-width:360px; margin:10px 0; }
+  .sw { border:1px solid var(--pa-border-strong); border-radius:10px; text-align:center; padding:14px 0;
+    background:var(--pa-panel-2); font-weight:700; }
+  .sw small { display:block; color:var(--pa-text-dim); font-weight:400; font-size:.72rem; margin-top:3px; }
+  footer { max-width:1180px; margin:0 auto; padding:20px 24px 60px; color:var(--pa-text-dim); font-size:.85rem;
+    border-top:1px solid var(--pa-border); }
+  .back { display:inline-block; margin-bottom:14px; }
+  @media (max-width:820px){ .wrap{flex-direction:column;} nav.toc{position:static;width:auto;border-right:none;border-bottom:1px solid var(--pa-border);padding:0 0 12px;max-height:none;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc">
+    <a class="back" href="editer.html">&larr; Back to editor</a>
+    <div class="grp">Start here</div>
+    <a href="#overview">Overview</a>
+    <a href="#manuals">Official manuals</a>
+    <a href="#files">The page files</a>
+    <div class="grp">Configuration</div>
+    <a href="#global">Global settings</a>
+    <a href="#keys">Footswitch (key) settings</a>
+    <a href="#ledmodes">LED modes</a>
+    <a href="#commands">Command types &amp; format</a>
+    <a href="#triggers">Triggers (tap / hold)</a>
+    <a href="#pages">Pages &amp; navigation</a>
+    <div class="grp">MIDI references</div>
+    <a href="#mc-ref">MIDI Captain functions</a>
+    <a href="#qc-ref">Quad Cortex</a>
+    <a href="#syn-ref">Synergy SYN-20IR</a>
+    <div class="grp">Using the editor</div>
+    <a href="#editor">Editor features</a>
+    <a href="#troubleshoot">Troubleshooting</a>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <h1>MIDI Captain Mini 6 &mdash; Documentation</h1>
+      <p>Firmware 5.0 &middot; A reference for the pedal and for the configuration editor that writes its <code>pageN.txt</code> files.</p>
+      <div class="pillrow">
+        <a class="pill" href="../MIDICaptainMINI6FW5/MIDICaptainMINI6FW5.0manual/MIDI%20Captain%20MINI6%20FW5.0manual%20EN.pdf" target="_blank" rel="noopener">&#128196; Official Manual (English, PDF)</a>
+        <a class="pill" href="../MIDICaptainMINI6FW5/MIDICaptainMINI6FW5.0manual/MIDI%20Captain%20MINI6%20FW5.0%E8%AF%B4%E6%98%8E%E4%B9%A6%20CN.pdf" target="_blank" rel="noopener">&#128196; 说明书 (中文, PDF)</a>
+        <a class="pill" href="../QuadCortexMini-MIDI-Reference.md" target="_blank" rel="noopener">&#128196; Quad Cortex MIDI reference</a>
+        <a class="pill" href="../SynergySYN20IR-MIDI-Reference.md" target="_blank" rel="noopener">&#128196; Synergy SYN-20IR reference</a>
+      </div>
+    </header>
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>The MIDI Captain Mini 6 is a battery-capable, wireless-capable MIDI foot controller with
+      <b>six footswitches</b>. In this editor and in the config files they are named:</p>
+      <div class="layout">
+        <div class="sw">1<small>top left</small></div>
+        <div class="sw">2<small>top middle</small></div>
+        <div class="sw">3<small>top right</small></div>
+        <div class="sw">A<small>bottom left</small></div>
+        <div class="sw">B<small>bottom middle</small></div>
+        <div class="sw">C<small>bottom right</small></div>
+      </div>
+      <p>Each footswitch can send MIDI (CC, Program Change, and more), drive the pedal's own
+      functions (page changes, tap tempo, looper), and light up in colors you choose. Everything a
+      switch does is stored per <b>page</b> (a preset layout). The pedal holds many pages and you
+      step between them with the footswitches.</p>
+      <div class="note">The shared firmware file format also lists keys <code>4</code>, <code>5</code>,
+      <code>D</code>, and <code>E</code> (for larger MIDI Captain models). On the Mini 6 those are inert
+      placeholders &mdash; only <b>1, 2, 3, A, B, C</b> are physical switches.</div>
+    </section>
+
+    <section id="manuals">
+      <h2>Official manuals</h2>
+      <p>The complete manufacturer documentation is bundled with this project:</p>
+      <ul>
+        <li><a href="../MIDICaptainMINI6FW5/MIDICaptainMINI6FW5.0manual/MIDI%20Captain%20MINI6%20FW5.0manual%20EN.pdf" target="_blank" rel="noopener">MIDI Captain MINI6 FW5.0 manual &mdash; English (PDF)</a></li>
+        <li><a href="../MIDICaptainMINI6FW5/MIDICaptainMINI6FW5.0manual/MIDI%20Captain%20MINI6%20FW5.0%E8%AF%B4%E6%98%8E%E4%B9%A6%20CN.pdf" target="_blank" rel="noopener">MIDI Captain MINI6 FW5.0 说明书 &mdash; 中文 (PDF)</a></li>
+      </ul>
+      <p>The reference below is a practical, editor-focused summary. When the manual and this page
+      disagree, trust the manual.</p>
+    </section>
+
+    <section id="files">
+      <h2>The page files (<code>page0.txt</code>, <code>page1.txt</code>, &hellip;)</h2>
+      <p>The pedal reads plain-text, INI-style files named <code>page0.txt</code>, <code>page1.txt</code>,
+      and so on &mdash; one file per page. Each file has a <code>[GlobalSetup]</code> section followed by
+      one section per footswitch (<code>[key1]</code>, <code>[key2]</code>, <code>[key3]</code>,
+      <code>[keyA]</code>, <code>[keyB]</code>, <code>[keyC]</code>). Values are wrapped in square
+      brackets.</p>
+      <pre><code>[GlobalSetup]
+page_name = [LEAD]
+ledbright = [80]
+...
+
+[key1]
+keytimes = [1]
+ledmode = [normal]
+ledcolor0 = [0xFF0000][0xFF0000][0xFF0000]
+short_up1_name = [DRIVE]
+short_up1 = [1][CC][43][0]</code></pre>
+      <div class="warn"><b>Fixed contract.</b> The section names, key names, ordering, and the
+      <code>[..]</code> wrapping are what the firmware expects. Only the <i>values</i> inside the
+      existing structure should change. This editor preserves that structure exactly; it only edits
+      values.</div>
+    </section>
+
+    <section id="global">
+      <h2>Global settings (<code>[GlobalSetup]</code>)</h2>
+      <p>These apply to the whole page.</p>
+      <table>
+        <tr><th>Setting</th><th>page0.txt key</th><th>What it does</th></tr>
+        <tr><td>Page name</td><td><code>page_name</code></td><td>Short name shown on the pedal screen (keep it to ~6 characters).</td></tr>
+        <tr><td>LED brightness</td><td><code>ledbright</code></td><td>Footswitch light brightness, 0&ndash;100.</td></tr>
+        <tr><td>Screen brightness</td><td><code>screenbright</code></td><td>Display brightness, 0&ndash;100.</td></tr>
+        <tr><td>Hold time</td><td><code>long_press_timing</code></td><td>How long a hold must last before the "long" action fires.</td></tr>
+        <tr><td>Wireless on/off</td><td><code>WIRELESS_2.4G</code></td><td>Enable the 2.4 GHz wireless module.</td></tr>
+        <tr><td>Wireless ID / power</td><td><code>WIRELESS_ID</code>, <code>WIRELESS_dB</code></td><td>Pairing ID and transmit strength.</td></tr>
+        <tr><td>Battery charging</td><td><code>BATTERY_CHARGE</code></td><td>Turn on only with rechargeable batteries installed.</td></tr>
+        <tr><td>Group count</td><td><code>group_number</code></td><td>How many presets are bundled per group.</td></tr>
+        <tr><td>Display mode</td><td><code>display_number_ABC</code></td><td>Plain numbers vs. number+letter within a group.</td></tr>
+        <tr><td>Start number</td><td><code>display_bank_offset</code></td><td>Whether preset numbering starts at 0 or 1.</td></tr>
+        <tr><td>Startup preset</td><td><code>pc_open_num</code></td><td>Preset selected when the pedal powers on.</td></tr>
+        <tr><td>Bank select</td><td><code>PC_Bank_Select</code>, <code>PC_group_0..9</code></td><td>For rigs with &gt;128 presets; bank-select messages.</td></tr>
+        <tr><td>Tap tempo range</td><td><code>tapcountMIN</code>, <code>tapcountMAX</code></td><td>Slowest/fastest tempo the tap footswitch accepts.</td></tr>
+        <tr><td>MIDI thru</td><td><code>midithrough</code></td><td>Pass incoming MIDI back out to chain devices.</td></tr>
+        <tr><td>External control</td><td><code>externalmidicontrol</code>, <code>externalmidicontrolch</code></td><td>Let other gear control this pedal, and on which channel.</td></tr>
+        <tr><td>Rotary knob</td><td><code>encoderCH</code>, <code>encoderCCnum</code>, <code>encoderkeyCCtoggle</code></td><td>Channel + CC the knob sends when turned/pushed.</td></tr>
+        <tr><td>Expression 1</td><td><code>exp1_CH</code>, <code>exp1_CC</code>, <code>exp1_min</code>, <code>exp1_max</code></td><td>Channel, CC, and heel/toe range for jack 1.</td></tr>
+        <tr><td>Expression 2</td><td><code>exp2_CH</code>, <code>exp2_CC</code>, <code>exp2_min</code>, <code>exp2_max</code></td><td>Channel, CC, and heel/toe range for jack 2.</td></tr>
+      </table>
+    </section>
+
+    <section id="keys">
+      <h2>Footswitch (key) settings</h2>
+      <p>Each <code>[keyN]</code> section describes one footswitch:</p>
+      <table>
+        <tr><th>Setting</th><th>Key</th><th>What it does</th></tr>
+        <tr><td>Number of steps</td><td><code>keytimes</code></td><td>How many states the switch cycles through per tap (1&ndash;10). Each step can have its own color and commands.</td></tr>
+        <tr><td>LED mode</td><td><code>ledmode</code></td><td>How the light behaves &mdash; see <a href="#ledmodes">LED modes</a>.</td></tr>
+        <tr><td>Idle color</td><td><code>ledcolor0</code></td><td>Color when the switch is just sitting there. Three <code>0xRRGGBB</code> values (24-bit color).</td></tr>
+        <tr><td>Step colors</td><td><code>ledcolor1</code>, <code>ledcolor2</code>, &hellip;</td><td>Color shown while the switch is on step 1, 2, &hellip;</td></tr>
+        <tr><td>Step name</td><td><code>short_up1_name</code>, <code>long1_name</code>, &hellip;</td><td>Short label shown on screen for that step/trigger.</td></tr>
+        <tr><td>Step command</td><td><code>short_up1</code>, <code>long1</code>, &hellip;</td><td>The MIDI/pedal command(s) that fire &mdash; see <a href="#commands">command format</a>.</td></tr>
+      </table>
+      <div class="note">Colors are true 24-bit hex (<code>0xRRGGBB</code>). The editor's color wheel writes
+      the value for you. The three repeated color values in a line correspond to the pedal's LED
+      segments; the editor keeps them in sync.</div>
+    </section>
+
+    <section id="ledmodes">
+      <h2>LED modes</h2>
+      <table>
+        <tr><th>Mode</th><th>Behavior</th></tr>
+        <tr><td><code>normal</code></td><td>Shows your chosen color for the current step.</td></tr>
+        <tr><td><code>tap</code></td><td>Blinks in time with the current tap tempo.</td></tr>
+        <tr><td><code>select</code></td><td>Radio-button behavior: among all switches set to <code>select</code>, only one stays lit at a time. Pressing another moves the lit indicator to it.</td></tr>
+        <tr><td><code>select1</code>&ndash;<code>select5</code></td><td>Five independent radio groups. Switches sharing the same number are mutually exclusive with each other, but independent from the other numbers &mdash; so you can run several radio groups on one page.</td></tr>
+      </table>
+      <p><b>Example:</b> set the three amp-channel switches to <code>select1</code> (only the active channel
+      lights) and two reverb A/B switches to <code>select2</code> so they stay independent.</p>
+    </section>
+
+    <section id="commands">
+      <h2>Command types &amp; format</h2>
+      <p>A command line holds one or more commands, each a run of bracket groups. Multiple commands on
+      one step are separated by a space:</p>
+      <pre><code>short_up1 = [1][CC][43][0] [16][CC][24][2]</code></pre>
+      <table>
+        <tr><th>Type</th><th>Format</th><th>Meaning</th></tr>
+        <tr><td>CC</td><td><code>[ch][CC][cc#][value]</code></td><td>Control Change. e.g. <code>[1][CC][43][0]</code> = channel 1, CC43, value 0.</td></tr>
+        <tr><td>CC Toggle</td><td><code>[ch][CCT][cc#][value]</code></td><td>Alternating CC (toggles between values on repeated presses).</td></tr>
+        <tr><td>Note</td><td><code>[ch][NT][note][velocity]</code></td><td>MIDI note on/off.</td></tr>
+        <tr><td>Program Change</td><td><code>[ch][PC][program][-]</code></td><td>Recall a preset. The program field can be a number, or <code>value_inc</code>/<code>value_dec</code>/<code>bank_inc</code>/<code>bank_dec</code> for relative moves.</td></tr>
+        <tr><td>Preset (page)</td><td><code>[preset][value_inc]</code> / <code>[preset][value_dec]</code></td><td>Move the MIDI Captain to the next / previous page.</td></tr>
+        <tr><td>Time Engine</td><td><code>[timeengine][value_inc|value_dec|begin|stop|record|track0..9]</code></td><td>Tap/looper engine control.</td></tr>
+        <tr><td>System Common</td><td><code>[syscmn][cmd][param]</code></td><td>Song Position / Song Select (and inc/dec/reset variants).</td></tr>
+        <tr><td>Real Time</td><td><code>[realtime][start|continue|stop|systemreset]</code></td><td>MIDI transport / clock messages.</td></tr>
+      </table>
+      <p><b>Bank + PC example</b> (recall a preset in a specific bank):
+      <code>[1][CC][32][1] [1][PC][2][-]</code> sends Bank Select LSB = 1, then Program Change 2.</p>
+    </section>
+
+    <section id="triggers">
+      <h2>Triggers: tap vs. hold</h2>
+      <p>Which line a command lives on decides <b>when</b> it fires:</p>
+      <table>
+        <tr><th>Line prefix</th><th>Fires when</th></tr>
+        <tr><td><code>short_dw#</code></td><td>On press down (immediately).</td></tr>
+        <tr><td><code>short_up#</code></td><td>On release of a quick tap.</td></tr>
+        <tr><td><code>long#</code></td><td>When a hold passes the hold-time threshold (while still held down).</td></tr>
+        <tr><td><code>long_up#</code></td><td>On release after a hold.</td></tr>
+      </table>
+      <p>The <code>#</code> is the step number (1 for the first step, 2 for the second, and so on, up to
+      <code>keytimes</code>). Each trigger has a matching <code>..._name</code> line for its screen label.</p>
+    </section>
+
+    <section id="pages">
+      <h2>Pages &amp; navigation</h2>
+      <p>The pedal holds many pages; you move between them with <code>[preset][value_inc]</code> (next)
+      and <code>[preset][value_dec]</code> (previous), usually assigned to a footswitch's hold action.</p>
+      <div class="warn"><b>Long-press page-change gotcha.</b> If you put page navigation on the
+      <b>press-down</b> of a hold (<code>long#</code>), your foot is still on the switch when the new page
+      loads. If the same switch on the destination page also has a hold action, the still-held press can
+      fire it too &mdash; making the pedal skip a page or bounce back. Put page changes on the
+      <b>release</b> of the hold (<code>long_up#</code>) so the switch is up before the new page appears.</div>
+    </section>
+
+    <section id="mc-ref">
+      <h2>MIDI Captain built-in functions</h2>
+      <p>Beyond sending MIDI to other gear, footswitches can drive the pedal itself. The editor's
+      <b>MC quick-fill</b> offers these:</p>
+      <table>
+        <tr><th>Function</th><th>Writes</th></tr>
+        <tr><td>Next / Previous page</td><td><code>[preset][value_inc]</code> / <code>[preset][value_dec]</code></td></tr>
+        <tr><td>Program Change up / down</td><td><code>[ch][PC][value_inc][-]</code> / <code>[ch][PC][value_dec][-]</code></td></tr>
+        <tr><td>Bank up / down</td><td><code>[ch][PC][bank_inc][-]</code> / <code>[ch][PC][bank_dec][-]</code></td></tr>
+        <tr><td>Time Engine +/&minus;, Looper begin/stop/record</td><td><code>[timeengine][&hellip;]</code></td></tr>
+        <tr><td>Transport start / continue / stop / reset</td><td><code>[realtime][&hellip;]</code></td></tr>
+        <tr><td>Song Select +/&minus;, Song Position reset</td><td><code>[syscmn][&hellip;]</code></td></tr>
+      </table>
+    </section>
+
+    <section id="qc-ref">
+      <h2>Quad Cortex reference</h2>
+      <p>The editor's <b>QC quick-fill</b> writes CC commands the Neural DSP Quad Cortex responds to
+      (scenes, modes, footswitches, looper, tap, tuner, and more). Set the <b>QC Ch</b> selector to the
+      channel your QC listens on. Full table:
+      <a href="../QuadCortexMini-MIDI-Reference.md" target="_blank" rel="noopener">QuadCortexMini-MIDI-Reference.md</a>.</p>
+      <table>
+        <tr><th>Goal</th><th>Send</th></tr>
+        <tr><td>Recall Scene B</td><td><code>CC43 = 1</code></td></tr>
+        <tr><td>Enter Scene mode</td><td><code>CC47 = 1</code></td></tr>
+        <tr><td>Tap tempo</td><td><code>CC44 = 127</code></td></tr>
+        <tr><td>Open tuner</td><td><code>CC45 = 127</code></td></tr>
+        <tr><td>Footswitch A (Page I)</td><td><code>CC35 = 127</code></td></tr>
+        <tr><td>Swap footswitch page</td><td><code>CC64 = 127</code> (Page II) / <code>0</code> (Page I)</td></tr>
+        <tr><td>Change preset</td><td>Program Change (send <code>CC0</code>/<code>CC32</code> first to change group/setlist)</td></tr>
+      </table>
+    </section>
+
+    <section id="syn-ref">
+      <h2>Synergy SYN-20IR reference</h2>
+      <p>The editor's <b>SYN quick-fill</b> writes CC commands for the Synergy SYN-20IR. Set the
+      <b>SYN Ch</b> selector to the channel it listens on (it ships in OMNI by default).</p>
+      <table>
+        <tr><th>Function</th><th>CC#</th><th>Values</th></tr>
+        <tr><td>Select Channel</td><td>CC24</td><td>0 = Ch1, 1 = Ch2, 2 = Ch3</td></tr>
+        <tr><td>Select Structure</td><td>CC25</td><td>0 = A, 1 = B, 2 = C</td></tr>
+        <tr><td>IR Bypass</td><td>CC27</td><td>0 = off, 127 = on, other = toggle</td></tr>
+        <tr><td>Select IR</td><td>CC28</td><td>0 = IR1, 1 = IR2, 2 = IR3, 3 = IR4</td></tr>
+        <tr><td>Low-Pass Level</td><td>CC29</td><td>0 / 1 / 2 = Level 1 / 2 / 3</td></tr>
+        <tr><td>High-Pass Level</td><td>CC30</td><td>0 / 1 / 2 = Level 1 / 2 / 3</td></tr>
+      </table>
+      <p>The SYN-20IR also responds to Program Change (0&ndash;127) to recall stored presets.</p>
+    </section>
+
+    <section id="editor">
+      <h2>Using the editor</h2>
+      <ul>
+        <li><b>Import</b> loads a single <code>pageN.txt</code>; <b>Import Folder</b> loads a whole folder of pages as tabs.</li>
+        <li><b>Page tabs</b> switch between loaded pages; <b>+ Page</b> creates a new page (optionally cloned from an existing one).</li>
+        <li><b>Swap Keys</b> exchanges every setting between two keys (e.g. Key 1 &harr; Key B).</li>
+        <li><b>Quick-fills</b> (QC / SYN / MC) auto-fill a command; a colored badge marks which device a command targets, including after import.</li>
+        <li><b>Save to Pedal</b> exports the active page under its own filename (e.g. <code>page2.txt</code>).</li>
+        <li>State lives in memory only &mdash; a refresh starts empty. Import your files to work, and Save to keep them.</li>
+      </ul>
+    </section>
+
+    <section id="troubleshoot">
+      <h2>Troubleshooting</h2>
+      <ul>
+        <li><b>Pedal skips a page on a hold:</b> move the page-change command to <code>long_up#</code> (release). See <a href="#pages">Pages &amp; navigation</a>.</li>
+        <li><b>Wrong preset loads on another device:</b> send Bank Select (<code>CC0</code>/<code>CC32</code>) before the Program Change, and confirm the target's MIDI channel matches your QC/SYN selector.</li>
+        <li><b>A color only "took" on one switch:</b> make sure you set <code>ledcolor0</code> (idle) and the step colors <code>ledcolor1..</code> as needed; the editor's color wheel writes all segments.</li>
+        <li><b>File won't load:</b> filenames must be <code>page</code> + a number + <code>.txt</code> for folder import to tab them; the structure must match the fixed <code>[GlobalSetup]</code>/<code>[keyN]</code> layout.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+<footer>
+  MIDI Captain Mini 6 documentation &mdash; bundled with the configuration editor. Manufacturer manuals
+  (EN/CN) are linked at the top. Third-party MIDI details (Quad Cortex, Synergy) were rephrased for
+  licensing compliance; see the linked reference files and each maker's official documentation.
+</footer>
+</body>
+</html>
