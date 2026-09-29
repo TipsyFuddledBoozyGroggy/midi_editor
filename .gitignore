@@ -1,0 +1,18 @@
+# Dependencies (installed via npm / Docker)
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Test / tooling caches
+coverage/
+.vitest/
+
+# Temporary capture files
+*-out.txt
+
+# Editor / OS cruft
+.DS_Store
+Thumbs.db
+*.log

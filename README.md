@@ -124,9 +124,16 @@ midi_editor/
 │     ├─ MIDI Captain MINI6 FW5.0manual EN.pdf   # official manual (English)
 │     └─ MIDI Captain MINI6 FW5.0说明书 CN.pdf    # official manual (Chinese)
 ├─ packages/
-│  └─ page-config/           # (in progress) typed core: parse/serialize/validate/lint pageN.txt
-│     ├─ src/                # document.ts (format-preserving model) …
-│     ├─ test/               # round-trip fixtures (real page files)
+│  └─ page-config/           # typed core: parse / serialize / validate / lint pageN.txt (no DOM)
+│     ├─ src/
+│     │  ├─ document.ts       # format-preserving line model (byte-exact round trip)
+│     │  ├─ brackets.ts       # [a][b][c] + command parsing / serialization
+│     │  ├─ model.ts          # semantic API: getEntry / setRawValue / buildPage
+│     │  ├─ schema.ts         # Zod-based contract validation
+│     │  ├─ lint.ts           # behavioral lint rules + QC/SYN device detection
+│     │  ├─ cli.ts            # validate | lint | roundtrip | check
+│     │  └─ index.ts          # public API (parse / serialize / analyze / roundtripEquals)
+│     ├─ test/               # round-trip + decomposition + schema + lint tests, real fixtures
 │     ├─ package.json
 │     ├─ tsconfig.json
 │     └─ vitest.config.ts
@@ -156,40 +163,111 @@ midi_editor/
 
 ## Developer: the `page-config` core package
 
-`packages/page-config` is an in-progress TypeScript package that extracts the firmware-contract
-logic out of the HTML so it can be tested and reused. Its job:
+`packages/page-config` is the typed, DOM-free core that extracts the firmware-contract logic out of
+the HTML so it can be tested and reused. It is the first delivered step of the
+[enterprise refactor](docs/ENTERPRISE-REFACTOR.md). What it does:
 
 - **Parse** a page file into a *format-preserving* line model.
-- **Serialize** back **byte-for-byte** (only edited values are regenerated).
-- **Validate** and **lint** (planned) against the contract and known device maps.
+- **Serialize** back **byte-for-byte** — unedited content is emitted from its original bytes; only
+  the values you actually change are regenerated.
+- **Read / edit** values by section + key through a semantic API, without touching structure.
+- **Validate** the file against the contract (known sections/keys, value ranges, enums) with Zod.
+- **Lint** for behavioral bugs — see [what the linter catches](#what-the-linter-catches).
 
-The key guarantee is a **byte-exact round-trip test** over the real page files in
+The headline guarantee is a **byte-exact round-trip test** over the real device files in
 `packages/page-config/test/fixtures/`:
 
 ```
 serialize(parse(file)) === file   // for every fixture
 ```
 
-### Running the tests
+### Prerequisites
 
-The package uses TypeScript + [Vitest](https://vitest.dev/). If you have Node installed:
+- **[Node.js](https://nodejs.org/) 20+** (bundles `npm`), **or**
+- **[Docker](https://www.docker.com/)** — if you'd rather not install Node, every command below has
+  a Docker equivalent that runs in a throwaway `node:20` container. The tests were developed and
+  verified this way.
+
+### Setup
 
 ```bash
 cd packages/page-config
 npm install
-npm test
 ```
 
-If Node is **not** installed locally, run the tests in Docker:
+With Docker instead of local Node (run from `packages/page-config`):
 
 ```bash
-# from packages/page-config
-docker run --rm -v "${PWD}:/app" -w /app node:20 sh -c "npm install && npm test"
+docker run --rm -v "${PWD}:/app" -w /app node:20 npm install
 ```
 
-> Status: the format-preserving document model and fixtures are in place; the semantic API,
-> schema/validation, lint rules, CLI, and the test suite are being added per
-> `docs/ENTERPRISE-REFACTOR.md`.
+> **Windows:** in PowerShell `${PWD}` works as written; in `cmd.exe` use `%cd%` instead. The
+> `node_modules/` folder created by a Docker install is Linux-native — keep using Docker to run it,
+> or reinstall with local Node if you switch.
+
+### Everyday commands
+
+| Task | With local Node | With Docker (from `packages/page-config`) |
+|---|---|---|
+| Run tests once | `npm test` | `docker run --rm -v "${PWD}:/app" -w /app node:20 sh -c "npm install && npm test"` |
+| Tests in watch mode | `npm run test:watch` | *(use local Node)* |
+| Typecheck (strict) | `npm run typecheck` | `docker run --rm -v "${PWD}:/app" -w /app node:20 sh -c "npm install && npm run typecheck"` |
+| Run the CLI | `npm run cli -- <cmd> <path…>` | `docker run --rm -v "${PWD}:/app" -w /app node:20 sh -c "npm install && npm run cli -- <cmd> <path…>"` |
+
+Tests use [Vitest](https://vitest.dev/); typechecking is `tsc --noEmit` under a strict `tsconfig`.
+
+### The CLI
+
+The CLI checks one or more page files (or folders of them) and exits non-zero if it finds any
+error-level problem, so it can gate CI:
+
+```bash
+npm run cli -- roundtrip test/fixtures/pages   # prove serialize(parse(file)) === file
+npm run cli -- validate  ../../page0.txt       # contract checks (structure, ranges, enums)
+npm run cli -- lint      ../../page0.txt        # behavioral rules only
+npm run cli -- check     ../../page0.txt        # validate + lint together
+```
+
+Example finding:
+
+```
+test/fixtures/pages/page21.txt
+  WARN  lint/step-overflow  line 50: Step 1 of key1 has 9 commands across its triggers. The editor
+        holds only 4 per step, so opening and re-saving this page here would drop the extras.
+```
+
+### What the linter catches
+
+| Rule | Severity | Flags |
+|---|---|---|
+| `lint/long-press-page-retrigger` | warning | Page nav (`[preset]`) on a press-down `long#` trigger instead of the release `long_up#` |
+| `lint/step-overflow` | warning | More than 4 commands on one step — the editor holds only 4/step (shared across a step's triggers), though the pedal firmware itself accepts more |
+| `lint/beyond-keytimes` | warning | A trigger or color whose step index exceeds `keytimes` |
+| `lint/mixed-select-groups` | warning | A page mixing the global `select` mode with numbered `select1`–`select5` groups |
+| `lint/select-keytimes` | info | A `select`-mode switch with `keytimes > 1` |
+| `lint/channel-mismatch` | warning | A Quad Cortex / SYN-20IR command whose channel differs from that device's configured (or first-seen) channel |
+| `lint/color-format` | error | An `ledcolorN` value that isn't three `0xRRGGBB` groups |
+| `schema/*` | error / warning | Unknown section or key, out-of-range value, bad enum, or an unrecognized command |
+
+### Using it as a library
+
+```ts
+import { analyze, parse, serialize, setRawValue } from "@midicaptain/page-config";
+
+// One-shot report: schema validation + lint findings.
+const report = analyze(fileText);          // { validation, lint, all, ok }
+if (!report.ok) console.log(report.all);
+
+// Format-preserving edit: only the one value's bytes change.
+const doc = parse(fileText);
+setRawValue(doc, "GlobalSetup", "ledbright", "[90]");
+const out = serialize(doc);
+```
+
+> Status: the core is **complete** — format-preserving parser/serializer, semantic API, Zod
+> validation, the behavioral linter and the CLI, all covered by the byte-exact round-trip tests over
+> the real device files (plus unit tests for each module). Next on the
+> [roadmap](#roadmap): the SPA shell and a single data-driven key panel.
 
 ---
 
@@ -199,8 +277,9 @@ The plan to evolve this from a single-file app into a modular, tested, enterpris
 (while still running locally, with Docker only where it helps) is in
 [`docs/ENTERPRISE-REFACTOR.md`](docs/ENTERPRISE-REFACTOR.md). Highlights:
 
-1. Finish the `page-config` core with byte-exact round-trip tests.
-2. Add a **config linter** (long-press page retrigger, step overflow, channel mismatch, …).
+1. ✅ **Done** — the `page-config` core with byte-exact round-trip tests.
+2. ✅ **Done** — a **config linter** (long-press page retrigger, step overflow, channel mismatch, …),
+   shipped inside `page-config`.
 3. Componentize the UI (Vite + TypeScript SPA); collapse the duplicated key panels.
 4. Introduce a state store with undo/redo.
 5. Optional Dockerized API + Postgres for saved setups, version history, and hosted linting.
@@ -214,7 +293,8 @@ The plan to evolve this from a single-file app into a modular, tested, enterpris
   compatible with the pedal firmware.
 - Keep the app **local-first** and **English-only** (the pedal ships EN/CN manuals; the editor UI
   is English).
-- Prefer changes that are covered by the `page-config` round-trip tests once that package lands.
+- Prefer changes that are covered by the `page-config` tests. Run `npm test` (and `npm run typecheck`)
+  in `packages/page-config` before submitting — the byte-exact round-trip test must stay green.
 
 ---
 
