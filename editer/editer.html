@@ -163346,8 +163346,28 @@ function parsePage0Text(text) {
         cfg[token] = v;
       } else if (GLOBAL_TOKEN_TO_KEY[token]) {
         cfg[GLOBAL_TOKEN_TO_KEY[token]] = val;
+      } else if (token === "PC_Bank_Select") {
+        // Auto PC bank: number of banks -> the editor's bank_total field.
+        cfg["bank_total"] = val;
+      } else if (/^PC_group_(\d+)$/.test(token)) {
+        // Each PC_group holds up to 3 CC commands ([ch][CC][num][val]). Load them into the
+        // editor's g{i}_cc{j}_num/val fields so they export unchanged; the shared CC channel
+        // becomes bank_cc_channel. (Without this the bank config was lost on import/save.)
+        const gi = token.match(/^PC_group_(\d+)$/)[1];
+        splitCommands(rhs).forEach((groups, idx) => {
+          if (idx >= 3 || (groups[1] || "").toUpperCase() !== "CC") return;
+          cfg["g" + gi + "_cc" + (idx + 1) + "_num"] = groups[2] || "";
+          cfg["g" + gi + "_cc" + (idx + 1) + "_val"] = groups[3] || "";
+          if (cfg["bank_cc_channel"] === undefined && groups[0]) cfg["bank_cc_channel"] = groups[0];
+        });
+      } else if (token === "CC_value_gropnumber") {
+        // Auto CC groups: up to 5 x [cc][count] -> auto_cc_g{i}_cc / _count.
+        splitCommands(rhs).forEach((groups, idx) => {
+          if (idx >= 5) return;
+          cfg["auto_cc_g" + (idx + 1) + "_cc"] = groups[0] || "";
+          cfg["auto_cc_g" + (idx + 1) + "_count"] = groups[1] || "";
+        });
       }
-      // Advanced fields (PC_Bank_Select, PC_group_*, CC_value_gropnumber) are left as-is.
       continue;
     }
 
@@ -164117,6 +164137,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (SYN_CC_NUMS.has(cc)) return 'SYN';      // these CC numbers are SYN-20IR only
             return DEVICE_BY_CCVAL[cc + ':' + val] || '';
         }
+        // Human-readable label for a CC command's exact cc:value (e.g. "Scene B", "Channel 2"),
+        // shown in the badge hover. Built from the QC and SYN quick-fill tables.
+        const LABEL_BY_CCVAL = (function () {
+            const m = {};
+            QC_ACTIONS.forEach(g => g.items.forEach(([label, cc, val]) => { m[cc + ':' + val] = label; }));
+            SYN_ACTIONS.forEach(g => g.items.forEach(([label, cc, val]) => { m[cc + ':' + val] = label; }));
+            return m;
+        })();
 
         // Scan an imported config for the MIDI channels its QC and SYN commands use, so the
         // navbar "QC Ch" / "SYN Ch" selectors can be set to match the file. Returns the first
@@ -164243,6 +164271,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const MC_TYPES = new Set(['preset', 'timeengine', 'systemcommon', 'realtime']);
         // Relative PC actions that are pedal-native navigation (vs. a plain numeric PC).
         const MC_PC_VALUES = new Set(['value_inc', 'value_dec', 'bank_inc', 'bank_dec']);
+        // Human-readable label for a MIDI Captain native action, keyed by "type:param"
+        // (e.g. "preset:value_inc" -> "Next Page (preset +)"), shown in the badge hover.
+        const MC_LABEL = (function () {
+            const m = {};
+            MC_ACTIONS.forEach(g => g.items.forEach(it => {
+                const f = it.fill || {};
+                const param = f.preset || f.pcValue || f.te || f.rt || f.sys || '';
+                m[(f.type || '') + ':' + param] = it.label;
+            }));
+            return m;
+        })();
 
         // Whether a command (by its current field values) is a MIDI Captain built-in action.
         function isMidiCaptainCommand(base) {
@@ -164403,14 +164442,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const refreshBadge = () => {
                     const type = (typeSel.value || '').toLowerCase();
                     let device = '';
+                    let desc = '';
                     if (type === 'cc') {
                         const cc = v1 ? parseInt(v1.value, 10) : NaN;
                         const val = v2 ? parseInt(v2.value, 10) : NaN;
                         device = detectDevice(cc, val);        // 'QC' | 'SYN' | ''
+                        if (device) desc = describeCcCommand(base);
                     } else if (isMidiCaptainCommand(base)) {
                         device = 'MC';
+                        desc = describeMcCommand(base);
                     }
-                    setLinkBadge(badge, device);
+                    setLinkBadge(badge, device, desc);        // desc is the hover text
                 };
                 // Re-check the badge on any field that can change what the command is.
                 ['_TYPE', '_VALUE1', '_VALUE2', '_PC_VALUE', '_PRESET', '_TIMEENGINE', '_REALTIME', '_SYSCMD'].forEach(suf => {
@@ -164431,27 +164473,53 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Short human description of the CC command in a slot, for the badge hover:
+        // "Scene B (CC43=1, ch 1)" for a known action, else just "CC24=5, ch 16".
+        function describeCcCommand(base) {
+            const q = (s) => document.querySelector('[data-key="' + base + s + '"]');
+            const val1 = q('_VALUE1'), val2 = q('_VALUE2'), chEl = q('_CH');
+            const cc = ((val1 && val1.value) || '').trim();
+            const val = ((val2 && val2.value) || '').trim();
+            const ch = ((chEl && chEl.value) || '').trim();
+            if (cc === '' || val === '') return '';
+            const detail = 'CC' + cc + '=' + val + (ch ? ', ch ' + ch : '');
+            const label = LABEL_BY_CCVAL[cc + ':' + val];
+            return label ? (label + ' (' + detail + ')') : detail;
+        }
+
+        // Short human description of a MIDI Captain native action, e.g. "Next Page (preset +)".
+        function describeMcCommand(base) {
+            const q = (s) => document.querySelector('[data-key="' + base + s + '"]');
+            const type = (((q('_TYPE') || {}).value) || '').toLowerCase();
+            const paramSuffix = { preset: '_PRESET', pc: '_PC_VALUE', timeengine: '_TIMEENGINE', realtime: '_REALTIME', systemcommon: '_SYSCMD' }[type];
+            const param = paramSuffix ? (((q(paramSuffix) || {}).value) || '') : '';
+            return MC_LABEL[type + ':' + param] || (type + (param ? ' ' + param : ''));
+        }
+
         // Show/hide the "linked to" badge next to a command. Pass 'QC', 'SYN', or '' to clear.
-        function setLinkBadge(el, device) {
+        // `description` (optional) is the specific value set/imported, shown on hover.
+        function setLinkBadge(el, device, description) {
             if (!el) return;
+            const desc = (description || '').trim();
             if (device === 'QC') {
                 el.className = 'link-badge link-qc';
                 el.innerHTML = '<i class="bi bi-link-45deg"></i> Quad Cortex';
-                el.title = 'This command was filled from the Quad Cortex quick-fill.';
+                el.title = desc ? ('Quad Cortex: ' + desc) : 'This command was filled from the Quad Cortex quick-fill.';
                 el.style.display = '';
             } else if (device === 'SYN') {
                 el.className = 'link-badge link-syn';
                 el.innerHTML = '<i class="bi bi-link-45deg"></i> SYN-20IR';
-                el.title = 'This command was filled from the Synergy SYN-20IR quick-fill.';
+                el.title = desc ? ('Synergy SYN-20IR: ' + desc) : 'This command was filled from the Synergy SYN-20IR quick-fill.';
                 el.style.display = '';
             } else if (device === 'MC') {
                 el.className = 'link-badge link-mc';
                 el.innerHTML = '<i class="bi bi-link-45deg"></i> MIDI Captain';
-                el.title = 'This command uses a MIDI Captain built-in function (page/preset, PC or bank, time engine, transport, system common).';
+                el.title = desc ? ('MIDI Captain: ' + desc) : 'This command uses a MIDI Captain built-in function (page/preset, PC or bank, time engine, transport, system common).';
                 el.style.display = '';
             } else {
                 el.className = 'link-badge';
                 el.innerHTML = '';
+                el.title = '';
                 el.style.display = 'none';
             }
         }
